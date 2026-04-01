@@ -1,13 +1,13 @@
 # Сауалнама Платформасы
 
-## 📁 Структура
+## Структура
 ```
 project/
 ├── FRONTEND/    ← React + Vite + TypeScript + shadcn/ui
 └── BACKEND/     ← Node.js + Express + PostgreSQL
 ```
 
-## 🚀 Іске қосу
+## Іске қосу
 
 ### 1. BACKEND
 ```bash
@@ -26,11 +26,11 @@ npm run dev
 # → http://localhost:8080
 ```
 
-## 🔑 Әдепкі акк
+##  Әдепкі акк
 - Логин: `admin`
 - Кілтсөз: `admin123`
 
-## 🌐 API маршруттары
+## API маршруттары
 | Метод | URL | Сипаттама |
 |-------|-----|-----------|
 | POST | /api/auth/register | Тіркелу |
