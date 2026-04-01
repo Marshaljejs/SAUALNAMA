@@ -16,11 +16,19 @@ export const SurveyProvider = ({ children }: { children: ReactNode }) => {
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const normalizeSurvey = (s: any): Survey => ({
+    ...s,
+    icon: s.emoji || s.icon || "fa-solid fa-clipboard-list",
+    estimatedTime: s.estimated_time || s.estimatedTime || "—",
+    questions: s.questions || [],
+    respondents: Number(s.respondents) || 0,
+  });
+
   const loadSurveys = async () => {
     setLoading(true);
     try {
       const data = await fetchSurveys();
-      setSurveys(data);
+      setSurveys(data.map(normalizeSurvey));
     } catch {
       setSurveys([]);
     } finally {

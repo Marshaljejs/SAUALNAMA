@@ -11,8 +11,22 @@ const adminRouter = require("./routes/admin");
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors({ origin: "http://localhost:8080" }));
-app.use(express.json());
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",")
+  : ["http://localhost:8080", "http://localhost:5173", "http://localhost:3000"];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS рұқсат жоқ"));
+    }
+  },
+  credentials: true,
+}));
+
+app.use(express.json({ limit: "10mb" }));
 
 app.use("/api/auth", authRouter);
 app.use("/api/surveys", surveysRouter);
@@ -29,15 +43,18 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
   console.error("Қате:", err.message);
+  if (err.message === "CORS рұқсат жоқ") {
+    return res.status(403).json({ success: false, message: err.message });
+  }
   res.status(500).json({ success: false, message: "Ішкі сервер қатесі" });
 });
 
 const start = async () => {
   await initDB();
   app.listen(PORT, () => {
-    console.log(`🚀 Сервер http://localhost:${PORT}`);
-    console.log(`📋 Сауалнамалар: http://localhost:${PORT}/api/surveys`);
-    console.log(`👑 Админ: http://localhost:${PORT}/api/admin/stats`);
+    console.log(`Сервер http://localhost:${PORT}`);
+    console.log(`Сауалнамалар: http://localhost:${PORT}/api/surveys`);
+    console.log(`Админ: http://localhost:${PORT}/api/admin/stats`);
   });
 };
 

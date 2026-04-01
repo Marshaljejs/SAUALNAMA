@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users, ClipboardList, BarChart3, Trash2, Shield, ShieldOff, Loader2, Eye, EyeOff } from "lucide-react";
+import { Users, ClipboardList, BarChart3, Trash2, Shield, ShieldOff, Loader2, Eye, EyeOff, Ban } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/context/AuthContext";
-import { fetchAdminStats, fetchAdminUsers, fetchAdminSurveys, updateUserRole, adminDeleteUser, adminDeleteSurvey, toggleSurveyPublish } from "@/lib/api";
+import { fetchAdminStats, fetchAdminUsers, fetchAdminSurveys, updateUserRole, adminDeleteUser, adminDeleteSurvey, toggleSurveyPublish, banUser } from "@/lib/api";
 
 const AdminDashboard = () => {
   const { isAdmin } = useAuth();
   const [tab, setTab] = useState<"stats" | "users" | "surveys">("stats");
   const [stats, setStats] = useState<{ users: { total: number; admins: number; regular: number }; surveys: { total: number; published: number }; responses: { total: number } } | null>(null);
-  const [users, setUsers] = useState<{ id: number; username: string; role: string; survey_count: number; created_at: string }[]>([]);
+  const [users, setUsers] = useState<{ id: number; username: string; role: string; is_banned: boolean; survey_count: number; created_at: string }[]>([]);
   const [surveys, setSurveys] = useState<{ id: string; title: string; icon: string; owner_name: string; is_published: boolean; response_count: number; created_at: string }[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -45,9 +45,20 @@ const AdminDashboard = () => {
     setLoading(true);
     try {
       const data = await fetchAdminSurveys();
-      setSurveys(data);
+      setSurveys(data.map((s: any) => ({
+        ...s,
+        icon: s.emoji || s.icon || "fa-solid fa-clipboard-list",
+      })));
     } catch (err: unknown) { toast.error(err instanceof Error ? err.message : "Қате"); }
     finally { setLoading(false); }
+  };
+
+  const handleBanToggle = async (userId: number, currentBanned: boolean) => {
+    try {
+      await banUser(userId, !currentBanned);
+      setUsers((prev) => prev.map((u) => u.id === userId ? { ...u, is_banned: !currentBanned } : u));
+      toast.success(!currentBanned ? "Пайдаланушы бандалды" : "Бан алынды");
+    } catch (err: unknown) { toast.error(err instanceof Error ? err.message : "Қате"); }
   };
 
   const handleRoleChange = async (userId: number, currentRole: string) => {
@@ -180,6 +191,7 @@ const AdminDashboard = () => {
                     <tr>
                       <th className="px-5 py-3 text-left font-semibold text-muted-foreground">Логин</th>
                       <th className="px-5 py-3 text-left font-semibold text-muted-foreground">Рөл</th>
+                      <th className="px-5 py-3 text-left font-semibold text-muted-foreground">Күй</th>
                       <th className="px-5 py-3 text-left font-semibold text-muted-foreground">Сауалнамалар</th>
                       <th className="px-5 py-3 text-left font-semibold text-muted-foreground">Тіркелді</th>
                       <th className="px-5 py-3 text-right font-semibold text-muted-foreground">Әрекет</th>
@@ -195,6 +207,13 @@ const AdminDashboard = () => {
                           }`}>
                             <i className={u.role === "admin" ? "fa-solid fa-crown text-amber-500" : "fa-solid fa-user"}></i>
                             {u.role === "admin" ? "Админ" : "Пайдаланушы"}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                            u.is_banned ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success"
+                          }`}>
+                            {u.is_banned ? "Бандалған" : "Белсенді"}
                           </span>
                         </td>
                         <td className="px-5 py-3.5 text-muted-foreground">{u.survey_count}</td>
@@ -213,6 +232,17 @@ const AdminDashboard = () => {
                               title={u.role === "admin" ? "Пайдаланушы ету" : "Админ ету"}
                             >
                               {u.role === "admin" ? <ShieldOff className="h-4 w-4" /> : <Shield className="h-4 w-4" />}
+                            </button>
+                            <button
+                              onClick={() => handleBanToggle(u.id, u.is_banned)}
+                              className={`rounded-lg p-1.5 transition-colors ${
+                                u.is_banned
+                                  ? "text-success hover:bg-success/10"
+                                  : "text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                              }`}
+                              title={u.is_banned ? "Бан алу" : "Бандау"}
+                            >
+                              <Ban className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteUser(u.id, u.username)}

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Clock, Users } from "lucide-react";
 import type { Survey } from "@/data/surveys";
+import ShareButton from "@/components/ShareButton";
 
 interface SurveyCardProps {
   survey: Survey;
@@ -13,11 +14,14 @@ const SurveyCard = ({ survey, index }: SurveyCardProps) => (
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: index * 0.1, duration: 0.4 }}
+    className="group relative rounded-2xl border border-border bg-card shadow-[var(--shadow-card)] transition-all hover:shadow-[var(--shadow-elevated)] hover:-translate-y-1"
   >
-    <Link
-      to={`/survey/${survey.id}`}
-      className="group block rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)] transition-all hover:shadow-[var(--shadow-elevated)] hover:-translate-y-1"
-    >
+    {/* Кнопка шеринга — поверх Link, правый верхний угол */}
+    <div className="absolute right-3 top-3 z-10">
+      <ShareButton surveyId={survey.id} title={survey.title} />
+    </div>
+
+    <Link to={`/survey/${survey.id}`} className="block p-6">
       <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
         <i className={`${survey.icon} text-2xl text-primary`}></i>
       </div>
@@ -25,7 +29,7 @@ const SurveyCard = ({ survey, index }: SurveyCardProps) => (
       <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
         {survey.category}
       </span>
-      <h3 className="mt-3 text-lg font-bold text-card-foreground group-hover:text-primary transition-colors">
+      <h3 className="mt-3 pr-6 text-lg font-bold text-card-foreground group-hover:text-primary transition-colors">
         {survey.title}
       </h3>
       <p className="mt-2 text-sm text-muted-foreground leading-relaxed">

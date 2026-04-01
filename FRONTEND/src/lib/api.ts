@@ -31,6 +31,28 @@ export const login = async (username: string, password: string) => {
   return data;
 };
 
+export const updateProfile = async (fields: { username?: string; avatar?: string }) => {
+  const res = await fetch(`${API_URL}/auth/profile`, {
+    method: "PUT",
+    headers: authHeaders(),
+    body: JSON.stringify(fields),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data;
+};
+
+export const updatePassword = async (currentPassword: string, newPassword: string) => {
+  const res = await fetch(`${API_URL}/auth/password`, {
+    method: "PUT",
+    headers: authHeaders(),
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data;
+};
+
 // ── SURVEYS ──
 export const fetchSurveys = async () => {
   const res = await fetch(`${API_URL}/surveys`);
@@ -136,6 +158,17 @@ export const updateUserRole = async (userId: number, role: string) => {
     method: "PUT",
     headers: authHeaders(),
     body: JSON.stringify({ role }),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data;
+};
+
+export const banUser = async (userId: number, is_banned: boolean) => {
+  const res = await fetch(`${API_URL}/admin/users/${userId}/ban`, {
+    method: "PUT",
+    headers: authHeaders(),
+    body: JSON.stringify({ is_banned }),
   });
   const data = await res.json();
   if (!data.success) throw new Error(data.message);

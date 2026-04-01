@@ -79,6 +79,11 @@ const initDB = async () => {
       );
     `);
 
+    // Миграция: добавить колонку avatar если ещё нет
+    await pool.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar VARCHAR(100) DEFAULT NULL;
+    `);
+
     const bcrypt = require("bcryptjs");
     const adminExists = await pool.query("SELECT id FROM users WHERE role = 'admin' LIMIT 1");
     if (adminExists.rows.length === 0) {

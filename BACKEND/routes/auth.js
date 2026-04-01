@@ -23,7 +23,7 @@ router.post("/register", async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
     const result = await pool.query(
-      "INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id, username, role",
+      "INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id, username, role, avatar",
       [username, passwordHash]
     );
     const user = result.rows[0];
@@ -31,7 +31,7 @@ router.post("/register", async (req, res) => {
 
     await log({ user, action: "register", entityType: "user", entityId: user.id, entityName: user.username, req });
 
-    res.status(201).json({ success: true, message: "Тіркелу сәтті аяқталды", token, user: { id: user.id, username: user.username, role: user.role } });
+    res.status(201).json({ success: true, message: "Тіркелу сәтті аяқталды", token, user: { id: user.id, username: user.username, role: user.role, avatar: user.avatar ?? null } });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: "Сервер қатесі" });
@@ -59,7 +59,7 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
     await log({ user: { id: user.id, username: user.username }, action: "login", entityType: "user", entityId: user.id, entityName: user.username, req });
 
-    res.json({ success: true, message: "Сәтті кірдіңіз", token, user: { id: user.id, username: user.username, role: user.role } });
+    res.json({ success: true, message: "Сәтті кірдіңіз", token, user: { id: user.id, username: user.username, role: user.role, avatar: user.avatar ?? null } });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: "Сервер қатесі" });
@@ -68,7 +68,7 @@ router.post("/login", async (req, res) => {
 
 router.get("/me", require("../middleware/auth").requireAuth, async (req, res) => {
   try {
-    const result = await pool.query("SELECT id, username, role, created_at FROM users WHERE id = $1", [req.user.id]);
+    const result = await pool.query("SELECT id, username, role, avatar, created_at FROM users WHERE id = $1", [req.user.id]);
     if (result.rows.length === 0)
       return res.status(404).json({ success: false, message: "Пайдаланушы табылмады" });
     res.json({ success: true, user: result.rows[0] });
@@ -76,5 +76,65 @@ router.get("/me", require("../middleware/auth").requireAuth, async (req, res) =>
     res.status(500).json({ success: false, message: "Сервер қатесі" });
   }
 });
+
+// Обновить никнейм и/или аватар
+router.put("/profile", require("../middleware/auth").requireAuth, async (req, res) => {
+  try {
+    const { username, avatar } = req.body;
+
+    if (username !== undefined) {
+      if (username.length < 3)
+        return res.status(400).json({ success: false, message: "Логин кем дегенде 3 таңба болуы керек" });
+      const taken = await pool.query("SELECT id FROM users WHERE username = $1 AND id != $2", [username, req.user.id]);
+      if (taken.rows.length > 0)
+        return res.status(409).json({ success: false, message: "Бұл логин бұрыннан бар" });
+    }
+
+    const result = await pool.query(
+      `UPDATE users
+       SET username  = COALESCE($1, username),
+           avatar    = COALESCE($2, avatar)
+       WHERE id = $3
+       RETURNING id, username, role, avatar`,
+      [username ?? null, avatar ?? null, req.user.id]
+    );
+
+    const updated = result.rows[0];
+    await log({ user: updated, action: "update_profile", entityType: "user", entityId: updated.id, entityName: updated.username, req });
+
+    res.json({ success: true, user: updated });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Сервер қатесі" });
+  }
+});
+
+// Сменить пароль
+router.put("/password", require("../middleware/auth").requireAuth, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword)
+      return res.status(400).json({ success: false, message: "Барлық өрістерді толтырыңыз" });
+    if (newPassword.length < 6)
+      return res.status(400).json({ success: false, message: "Жаңа кілтсөз кем дегенде 6 таңба болуы керек" });
+
+    const result = await pool.query("SELECT password_hash FROM users WHERE id = $1", [req.user.id]);
+    const isValid = await bcrypt.compare(currentPassword, result.rows[0].password_hash);
+    if (!isValid)
+      return res.status(401).json({ success: false, message: "Ағымдағы кілтсөз қате" });
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+    await pool.query("UPDATE users SET password_hash = $1 WHERE id = $2", [newHash, req.user.id]);
+
+    await log({ user: req.user, action: "change_password", entityType: "user", entityId: req.user.id, entityName: req.user.username, req });
+
+    res.json({ success: true, message: "Кілтсөз сәтті өзгертілді" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Сервер қатесі" });
+  }
+});
+
+console.log("✅ auth routes loaded: POST /register, POST /login, GET /me, PUT /profile, PUT /password");
 
 module.exports = router;

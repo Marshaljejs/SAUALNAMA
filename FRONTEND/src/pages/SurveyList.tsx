@@ -1,13 +1,15 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SurveyCard from "@/components/SurveyCard";
 import { useSurveys } from "@/context/SurveyContext";
+import { useAuth } from "@/context/AuthContext";
 
 const SurveyList = () => {
-  const { surveys } = useSurveys();
+  const { surveys, loading } = useSurveys();
+  const { user } = useAuth();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -27,19 +29,37 @@ const SurveyList = () => {
                 Қатысу үшін сауалнаманы таңдаңыз
               </p>
             </div>
-            <Link
-              to="/admin"
-              className="flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:-translate-y-0.5"
-            >
-              <Plus className="h-4 w-4" />
-              Жаңа
-            </Link>
+            {user && (
+              <Link
+                to="/create"
+                className="flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:-translate-y-0.5"
+              >
+                <Plus className="h-4 w-4" />
+                Жаңа
+              </Link>
+            )}
           </motion.div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {surveys.map((s, i) => (
-              <SurveyCard key={s.id} survey={s} index={i} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : surveys.length === 0 ? (
+            <div className="rounded-2xl border-2 border-dashed border-border py-20 text-center">
+              <div className="flex justify-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
+                  <i className="fa-solid fa-clipboard-list text-3xl text-muted-foreground"></i>
+                </div>
+              </div>
+              <p className="mt-4 text-lg font-semibold text-foreground">Сауалнама жоқ</p>
+              <p className="mt-1 text-sm text-muted-foreground">Әзірге сауалнамалар жарияланбаған</p>
+            </div>
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {surveys.map((s, i) => (
+                <SurveyCard key={s.id} survey={s} index={i} />
+              ))}
+            </div>
+          )}
         </div>
       </main>
       <Footer />

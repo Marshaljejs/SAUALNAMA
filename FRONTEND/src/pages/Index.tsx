@@ -42,7 +42,7 @@ const Index = () => {
             backgroundPosition: "center",
           }}
         >
-          <div className="absolute inset-0 bg-white/20" />
+          <div className="absolute inset-0 bg-white/20 dark:bg-black/50" />
           <div className="container relative z-10 mx-auto px-4 md:px-6">
             <motion.div
               initial={{ opacity: 0, y: 24 }}
@@ -50,7 +50,7 @@ const Index = () => {
               transition={{ duration: 0.6 }}
               className="mx-auto max-w-2xl text-center"
             >
-              <span className="inline-block rounded-full bg-white/60 px-4 py-1.5 text-xs font-bold text-primary backdrop-blur-sm">
+              <span className="inline-block rounded-full bg-white/60 dark:bg-white/10 px-4 py-1.5 text-xs font-bold text-primary dark:text-primary backdrop-blur-sm border border-transparent dark:border-white/10">
                 Қазақша сауалнама платформасы
              </span>
               <h1 className="mt-6 text-4xl font-black leading-tight text-foreground md:text-6xl">

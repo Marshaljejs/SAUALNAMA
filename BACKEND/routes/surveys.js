@@ -55,13 +55,13 @@ router.get("/:id", optionalAuth, async (req, res) => {
 
 router.post("/", requireAuth, async (req, res) => {
   try {
-    const { id, title, description, emoji, category, estimatedTime, questions } = req.body;
+    const { id, title, description, emoji, icon, category, estimatedTime, questions } = req.body;
     if (!title || !questions || questions.length === 0)
       return res.status(400).json({ success: false, message: "Атауы мен сұрақтар міндетті" });
 
     await pool.query(
       `INSERT INTO surveys (id, title, description, emoji, category, estimated_time, owner_id) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-      [id, title, description, emoji, category, estimatedTime, req.user.id]
+      [id, title, description, icon || emoji || null, category, estimatedTime, req.user.id]
     );
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i];
@@ -97,10 +97,10 @@ router.put("/:id", requireAuth, async (req, res) => {
     if (!isOwner && !isAdmin)
       return res.status(403).json({ success: false, message: "Рұқсат жоқ" });
 
-    const { title, description, emoji, category, estimatedTime, questions } = req.body;
+    const { title, description, emoji, icon, category, estimatedTime, questions } = req.body;
     await pool.query(
       `UPDATE surveys SET title=$1, description=$2, emoji=$3, category=$4, estimated_time=$5, updated_at=NOW() WHERE id=$6`,
-      [title, description, emoji, category, estimatedTime, id]
+      [title, description, icon || emoji || null, category, estimatedTime, id]
     );
     await pool.query("DELETE FROM questions WHERE survey_id = $1", [id]);
     for (let i = 0; i < questions.length; i++) {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/Header";
@@ -33,15 +34,19 @@ interface SurveyStats {
 
 const Results = () => {
   const { surveys } = useSurveys();
+  const [searchParams] = useSearchParams();
   const [selectedId, setSelectedId] = useState<string>("");
   const [statsData, setStatsData] = useState<SurveyStats | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (surveys.length > 0 && !selectedId) {
+    const paramId = searchParams.get("survey");
+    if (paramId) {
+      setSelectedId(paramId);
+    } else if (surveys.length > 0 && !selectedId) {
       setSelectedId(surveys[0].id);
     }
-  }, [surveys]);
+  }, [surveys, searchParams]);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -79,7 +84,6 @@ const Results = () => {
             </p>
           </motion.div>
 
-          {/* Жалпы карточкалар */}
           <div className="mb-8 grid gap-4 sm:grid-cols-3">
             {[
               { label: "Жалпы қатысушылар", value: surveys.reduce((a, s) => a + s.respondents, 0), faIcon: "fa-solid fa-users", color: "text-blue-500", bg: "bg-blue-50" },
@@ -102,7 +106,6 @@ const Results = () => {
             ))}
           </div>
 
-          {/* Сауалнама таңдау */}
           <div className="mb-6">
             <label className="mb-2 block text-sm font-semibold text-foreground">
               Сауалнаманы таңдаңыз:
@@ -118,7 +121,6 @@ const Results = () => {
             </select>
           </div>
 
-          {/* Статистика */}
           {loading ? (
             <div className="flex justify-center py-16">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -149,7 +151,6 @@ const Results = () => {
                     {i + 1}. {stat.questionText}
                   </h3>
 
-                  {/* Single / Multiple → BarChart */}
                   {(stat.type === "single" || stat.type === "multiple") && stat.data && (
                     <ResponsiveContainer width="100%" height={240}>
                       <BarChart data={stat.data.map((d) => ({ name: d.label, value: d.count }))}>
@@ -166,7 +167,6 @@ const Results = () => {
                     </ResponsiveContainer>
                   )}
 
-                  {/* Rating → орташа баға */}
                   {stat.type === "rating" && (
                     <div className="flex items-center gap-4">
                       <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-amber-50">
@@ -191,7 +191,6 @@ const Results = () => {
                     </div>
                   )}
 
-                  {/* Text → еркін жауаптар */}
                   {stat.type === "text" && stat.answers && (
                     <div className="space-y-2">
                       {stat.answers.length === 0 ? (

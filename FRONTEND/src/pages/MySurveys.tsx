@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Plus, Trash2, Edit, BarChart2, Loader2 } from "lucide-react";
+import { Plus, Trash2, BarChart2, Loader2 } from "lucide-react";
+import ShareButton from "@/components/ShareButton";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -32,7 +33,10 @@ const MySurveys = () => {
   const loadSurveys = async () => {
     try {
       const data = await fetchMySurveys();
-      setSurveys(data);
+      setSurveys(data.map((s: any) => ({
+        ...s,
+        icon: s.emoji || s.icon || "fa-solid fa-clipboard-list",
+      })));
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Қате орын алды");
     } finally {
@@ -127,20 +131,14 @@ const MySurveys = () => {
                       {s.category} · {s.response_count} жауап
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-1 shrink-0">
+                    <ShareButton surveyId={s.id} title={s.title} />
                     <button
-                      onClick={() => navigate(`/results/${s.id}`)}
+                      onClick={() => navigate(`/results?survey=${s.id}`)}
                       className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                       title="Нәтижелер"
                     >
                       <BarChart2 className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => navigate(`/edit/${s.id}`)}
-                      className="rounded-lg p-2 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
-                      title="Өңдеу"
-                    >
-                      <Edit className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(s.id, s.title)}
