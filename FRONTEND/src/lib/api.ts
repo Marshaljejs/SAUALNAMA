@@ -1,14 +1,13 @@
 const API_URL = "http://localhost:3001/api";
 
-// Токенді localStorage-дан алу
 const getToken = () => localStorage.getItem("token");
 
-const authHeaders = () => ({
+const authHeaders = (): Record<string, string> => ({
   "Content-Type": "application/json",
   ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
 });
 
-// ── AUTH ──
+// ── AUTH ──────────────────────────────────────────────────────────────────────
 export const register = async (username: string, password: string) => {
   const res = await fetch(`${API_URL}/auth/register`, {
     method: "POST",
@@ -53,7 +52,7 @@ export const updatePassword = async (currentPassword: string, newPassword: strin
   return data;
 };
 
-// ── SURVEYS ──
+// ── SURVEYS ───────────────────────────────────────────────────────────────────
 export const fetchSurveys = async () => {
   const res = await fetch(`${API_URL}/surveys`);
   const data = await res.json();
@@ -69,7 +68,7 @@ export const fetchMySurveys = async () => {
 };
 
 export const fetchSurvey = async (id: string) => {
-  const res = await fetch(`${API_URL}/surveys/${id}`);
+  const res = await fetch(`${API_URL}/surveys/${id}`, { headers: authHeaders() });
   const data = await res.json();
   if (!data.success) throw new Error(data.message);
   return data.data;
@@ -107,7 +106,7 @@ export const deleteSurvey = async (id: string) => {
   return data;
 };
 
-// ── RESPONSES ──
+// ── RESPONSES ─────────────────────────────────────────────────────────────────
 export const submitResponse = async (
   surveyId: string,
   answers: Record<string, string | string[] | number>
@@ -115,7 +114,12 @@ export const submitResponse = async (
   const res = await fetch(`${API_URL}/responses`, {
     method: "POST",
     headers: authHeaders(),
-    body: JSON.stringify({ surveyId, answers, sessionId: crypto.randomUUID() }),
+    body: JSON.stringify({
+      surveyId,
+      answers,
+      sessionId: crypto.randomUUID(),
+      _hp: "",   // Honeypot: боты заполнят это поле
+    }),
   });
   const data = await res.json();
   if (!data.success) throw new Error(data.message);
@@ -131,7 +135,71 @@ export const fetchStats = async (surveyId: string) => {
   return data.data;
 };
 
-// ── ADMIN ──
+// ── GAMIFICATION ─────────────────────────────────────────────────────────────
+export const fetchUserStats = async (userId: number) => {
+  const res = await fetch(`${API_URL}/gamification/user/${userId}/stats`, {
+    headers: authHeaders(),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data.data;
+};
+
+export const fetchAchievements = async () => {
+  const res = await fetch(`${API_URL}/gamification/achievements`);
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data.data;
+};
+
+export const fetchComments = async (surveyId: string) => {
+  const res = await fetch(`${API_URL}/gamification/comments/${surveyId}`);
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data.data;
+};
+
+export const postComment = async (surveyId: string, content: string) => {
+  const res = await fetch(`${API_URL}/gamification/comments/${surveyId}`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ content }),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data.data;
+};
+
+export const deleteComment = async (commentId: number) => {
+  const res = await fetch(`${API_URL}/gamification/comments/item/${commentId}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data;
+};
+
+export const fetchNotifications = async () => {
+  const res = await fetch(`${API_URL}/gamification/notifications`, {
+    headers: authHeaders(),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data;
+};
+
+export const markAllNotificationsRead = async () => {
+  const res = await fetch(`${API_URL}/gamification/notifications/read-all`, {
+    method: "PUT",
+    headers: authHeaders(),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data;
+};
+
+// ── ADMIN ─────────────────────────────────────────────────────────────────────
 export const fetchAdminStats = async () => {
   const res = await fetch(`${API_URL}/admin/stats`, { headers: authHeaders() });
   const data = await res.json();

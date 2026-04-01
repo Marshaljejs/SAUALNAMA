@@ -6,7 +6,6 @@ const { log } = require("../middleware/logger");
 
 router.use(requireAuth, requireAdmin);
 
-// ── GET /api/admin/stats ──
 router.get("/stats", async (req, res) => {
   try {
     const [users, surveys, responses] = await Promise.all([
@@ -27,7 +26,6 @@ router.get("/stats", async (req, res) => {
   }
 });
 
-// ── GET /api/admin/users ──
 router.get("/users", async (req, res) => {
   try {
     const result = await pool.query(`
@@ -42,7 +40,6 @@ router.get("/users", async (req, res) => {
   }
 });
 
-// ── PUT /api/admin/users/:id/role ── Рөл өзгерту
 router.put("/users/:id/role", async (req, res) => {
   try {
     const { id } = req.params;
@@ -63,7 +60,6 @@ router.put("/users/:id/role", async (req, res) => {
   }
 });
 
-// ── PUT /api/admin/users/:id/ban ── Бан / бан алу
 router.put("/users/:id/ban", async (req, res) => {
   try {
     const { id } = req.params;
@@ -82,7 +78,6 @@ router.put("/users/:id/ban", async (req, res) => {
   }
 });
 
-// ── DELETE /api/admin/users/:id ── Пайдаланушыны жою
 router.delete("/users/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -99,7 +94,6 @@ router.delete("/users/:id", async (req, res) => {
   }
 });
 
-// ── GET /api/admin/surveys ──
 router.get("/surveys", async (req, res) => {
   try {
     const result = await pool.query(`
@@ -114,7 +108,6 @@ router.get("/surveys", async (req, res) => {
   }
 });
 
-// ── DELETE /api/admin/surveys/:id ──
 router.delete("/surveys/:id", async (req, res) => {
   try {
     const survey = await pool.query("SELECT title FROM surveys WHERE id = $1", [req.params.id]);
@@ -126,7 +119,6 @@ router.delete("/surveys/:id", async (req, res) => {
   }
 });
 
-// ── PUT /api/admin/surveys/:id/publish ──
 router.put("/surveys/:id/publish", async (req, res) => {
   try {
     const { is_published } = req.body;
@@ -139,7 +131,6 @@ router.put("/surveys/:id/publish", async (req, res) => {
   }
 });
 
-// ── GET /api/admin/logs ── Барлық әрекет журналы
 router.get("/logs", async (req, res) => {
   try {
     const { action, user_id, limit = 100, offset = 0 } = req.query;

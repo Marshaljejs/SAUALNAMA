@@ -1,6 +1,5 @@
 const { pool } = require("../db");
 
-// Әрекетті дерекқорға жазу
 const log = async ({ user, action, entityType, entityId, entityName, details, req }) => {
   try {
     const ip = req?.headers["x-forwarded-for"] || req?.socket?.remoteAddress || null;
@@ -19,7 +18,7 @@ const log = async ({ user, action, entityType, entityId, entityName, details, re
       ]
     );
   } catch (err) {
-    console.error("⚠️ Лог жазу қатесі:", err.message);
+    console.error("Log error:", err.message);
   }
 };
 

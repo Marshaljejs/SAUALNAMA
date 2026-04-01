@@ -6,6 +6,9 @@ export interface User {
   username: string;
   role: "user" | "admin";
   avatar?: string | null;
+  xp: number;
+  level: number;
+  streak_count: number;
 }
 
 interface AuthContextType {
@@ -26,14 +29,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Беттi жүктегенде localStorage-дан алу
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
     const savedUser = localStorage.getItem("user");
     if (savedToken && savedUser) {
       try {
         setToken(savedToken);
-        setUser(JSON.parse(savedUser));
+        const parsed = JSON.parse(savedUser) as User;
+        // Обратная совместимость: старые данные без xp/level/streak
+        setUser({
+          xp: 0,
+          level: 1,
+          streak_count: 0,
+          ...parsed,
+        });
       } catch {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -45,17 +54,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (username: string, password: string) => {
     const data = await apiLogin(username, password);
     setToken(data.token);
-    setUser(data.user);
+    const u: User = { xp: 0, level: 1, streak_count: 0, ...data.user };
+    setUser(u);
     localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem("user", JSON.stringify(u));
   };
 
   const register = async (username: string, password: string) => {
     const data = await apiRegister(username, password);
     setToken(data.token);
-    setUser(data.user);
+    const u: User = { xp: 0, level: 1, streak_count: 0, ...data.user };
+    setUser(u);
     localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem("user", JSON.stringify(u));
   };
 
   const logout = () => {
