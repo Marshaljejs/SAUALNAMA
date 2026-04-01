@@ -1,0 +1,174 @@
+const API_URL = "http://localhost:3001/api";
+
+// Токенді localStorage-дан алу
+const getToken = () => localStorage.getItem("token");
+
+const authHeaders = () => ({
+  "Content-Type": "application/json",
+  ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
+});
+
+// ── AUTH ──
+export const register = async (username: string, password: string) => {
+  const res = await fetch(`${API_URL}/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data;
+};
+
+export const login = async (username: string, password: string) => {
+  const res = await fetch(`${API_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data;
+};
+
+// ── SURVEYS ──
+export const fetchSurveys = async () => {
+  const res = await fetch(`${API_URL}/surveys`);
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data.data;
+};
+
+export const fetchMySurveys = async () => {
+  const res = await fetch(`${API_URL}/surveys/my`, { headers: authHeaders() });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data.data;
+};
+
+export const fetchSurvey = async (id: string) => {
+  const res = await fetch(`${API_URL}/surveys/${id}`);
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data.data;
+};
+
+export const createSurvey = async (survey: object) => {
+  const res = await fetch(`${API_URL}/surveys`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(survey),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data;
+};
+
+export const updateSurvey = async (id: string, survey: object) => {
+  const res = await fetch(`${API_URL}/surveys/${id}`, {
+    method: "PUT",
+    headers: authHeaders(),
+    body: JSON.stringify(survey),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data;
+};
+
+export const deleteSurvey = async (id: string) => {
+  const res = await fetch(`${API_URL}/surveys/${id}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data;
+};
+
+// ── RESPONSES ──
+export const submitResponse = async (
+  surveyId: string,
+  answers: Record<string, string | string[] | number>
+) => {
+  const res = await fetch(`${API_URL}/responses`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ surveyId, answers, sessionId: crypto.randomUUID() }),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data;
+};
+
+export const fetchStats = async (surveyId: string) => {
+  const res = await fetch(`${API_URL}/responses/stats/${surveyId}`, {
+    headers: authHeaders(),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data.data;
+};
+
+// ── ADMIN ──
+export const fetchAdminStats = async () => {
+  const res = await fetch(`${API_URL}/admin/stats`, { headers: authHeaders() });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data.data;
+};
+
+export const fetchAdminUsers = async () => {
+  const res = await fetch(`${API_URL}/admin/users`, { headers: authHeaders() });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data.data;
+};
+
+export const fetchAdminSurveys = async () => {
+  const res = await fetch(`${API_URL}/admin/surveys`, { headers: authHeaders() });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data.data;
+};
+
+export const updateUserRole = async (userId: number, role: string) => {
+  const res = await fetch(`${API_URL}/admin/users/${userId}/role`, {
+    method: "PUT",
+    headers: authHeaders(),
+    body: JSON.stringify({ role }),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data;
+};
+
+export const adminDeleteUser = async (userId: number) => {
+  const res = await fetch(`${API_URL}/admin/users/${userId}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data;
+};
+
+export const adminDeleteSurvey = async (surveyId: string) => {
+  const res = await fetch(`${API_URL}/admin/surveys/${surveyId}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data;
+};
+
+export const toggleSurveyPublish = async (surveyId: string, is_published: boolean) => {
+  const res = await fetch(`${API_URL}/admin/surveys/${surveyId}/publish`, {
+    method: "PUT",
+    headers: authHeaders(),
+    body: JSON.stringify({ is_published }),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message);
+  return data;
+};
