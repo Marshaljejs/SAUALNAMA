@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Plus, Trash2, BarChart2, Loader2 } from "lucide-react";
 import ShareButton from "@/components/ShareButton";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/context/AuthContext";
@@ -22,6 +23,7 @@ interface Survey {
 const MySurveys = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -38,21 +40,21 @@ const MySurveys = () => {
         icon: s.emoji || s.icon || "fa-solid fa-clipboard-list",
       })));
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Қате орын алды");
+      toast.error(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`"${title}" сауалнамасын жоясыз ба?`)) return;
+    if (!confirm(t("mySurveysPage.deleteConfirm", { title }))) return;
     setDeletingId(id);
     try {
       await deleteSurvey(id);
       setSurveys((prev) => prev.filter((s) => s.id !== id));
-      toast.success("Сауалнама жойылды");
+      toast.success(t("mySurveysPage.deleted"));
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Қате орын алды");
+      toast.error(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setDeletingId(null);
     }
@@ -69,9 +71,9 @@ const MySurveys = () => {
             className="mb-8 flex items-center justify-between"
           >
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Менің сауалнамаларым</h1>
+              <h1 className="text-3xl font-bold text-foreground">{t("mySurveysPage.title")}</h1>
               <p className="mt-1 text-muted-foreground">
-                Сәлем, {user?.username}!{" "}
+                {t("mySurveysPage.greeting", { name: user?.username })}{" "}
                 <i className="fa-solid fa-hand-wave text-amber-400"></i>
               </p>
             </div>
@@ -79,7 +81,7 @@ const MySurveys = () => {
               to="/create"
               className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 hover:-translate-y-0.5 transition-all"
             >
-              <Plus className="h-4 w-4" /> Жаңа сауалнама
+              <Plus className="h-4 w-4" /> {t("mySurveysPage.newBtn")}
             </Link>
           </motion.div>
 
@@ -94,13 +96,13 @@ const MySurveys = () => {
                   <i className="fa-solid fa-clipboard-list text-3xl text-muted-foreground"></i>
                 </div>
               </div>
-              <p className="mt-4 text-lg font-semibold text-foreground">Сауалнама жоқ</p>
-              <p className="mt-1 text-sm text-muted-foreground">Алғашқы сауалнамаңызды жасаңыз!</p>
+              <p className="mt-4 text-lg font-semibold text-foreground">{t("mySurveysPage.empty")}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{t("mySurveysPage.emptyDesc")}</p>
               <Link
                 to="/create"
                 className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
               >
-                <Plus className="h-4 w-4" /> Жасау
+                <Plus className="h-4 w-4" /> {t("mySurveysPage.createBtn")}
               </Link>
             </div>
           ) : (
@@ -124,11 +126,11 @@ const MySurveys = () => {
                           ? "bg-success/10 text-success"
                           : "bg-muted text-muted-foreground"
                       }`}>
-                        {s.is_published ? "Жарияланған" : "Жасырын"}
+                        {s.is_published ? t("mySurveysPage.published") : t("mySurveysPage.hidden")}
                       </span>
                     </div>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      {s.category} · {s.response_count} жауап
+                      {s.category} · {t("mySurveysPage.responseCount", { count: s.response_count })}
                     </p>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
@@ -136,7 +138,7 @@ const MySurveys = () => {
                     <button
                       onClick={() => navigate(`/results?survey=${s.id}`)}
                       className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                      title="Нәтижелер"
+                      title={t("nav.results")}
                     >
                       <BarChart2 className="h-4 w-4" />
                     </button>
@@ -144,7 +146,7 @@ const MySurveys = () => {
                       onClick={() => handleDelete(s.id, s.title)}
                       disabled={deletingId === s.id}
                       className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors disabled:opacity-50"
-                      title="Жою"
+                      title={t("common.delete")}
                     >
                       {deletingId === s.id
                         ? <Loader2 className="h-4 w-4 animate-spin" />

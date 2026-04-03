@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Plus, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SurveyCard from "@/components/SurveyCard";
@@ -10,6 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 const SurveyList = () => {
   const { surveys, loading } = useSurveys();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -23,10 +25,10 @@ const SurveyList = () => {
           >
             <div>
               <h1 className="text-3xl font-bold text-foreground md:text-4xl">
-                Сауалнамалар
+                {t("surveysPage.title")}
               </h1>
               <p className="mt-2 text-muted-foreground">
-                Қатысу үшін сауалнаманы таңдаңыз
+                {t("surveysPage.subtitle")}
               </p>
             </div>
             {user && (
@@ -35,7 +37,7 @@ const SurveyList = () => {
                 className="flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:-translate-y-0.5"
               >
                 <Plus className="h-4 w-4" />
-                Жаңа
+                {t("surveysPage.newBtn")}
               </Link>
             )}
           </motion.div>
@@ -50,8 +52,8 @@ const SurveyList = () => {
                   <i className="fa-solid fa-clipboard-list text-3xl text-muted-foreground"></i>
                 </div>
               </div>
-              <p className="mt-4 text-lg font-semibold text-foreground">Сауалнама жоқ</p>
-              <p className="mt-1 text-sm text-muted-foreground">Әзірге сауалнамалар жарияланбаған</p>
+              <p className="mt-4 text-lg font-semibold text-foreground">{t("surveysPage.empty")}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{t("surveysPage.emptyDesc")}</p>
             </div>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

@@ -14,9 +14,8 @@ const SurveyCard = ({ survey, index }: SurveyCardProps) => (
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: index * 0.1, duration: 0.4 }}
-    className="group relative rounded-2xl border border-border bg-card shadow-[var(--shadow-card)] transition-all hover:shadow-[var(--shadow-elevated)] hover:-translate-y-1"
+    className="survey-card-glow group relative rounded-2xl border border-border bg-card shadow-[var(--shadow-card)] transition-all hover:shadow-[var(--shadow-elevated)] hover:-translate-y-1"
   >
-    {/* Кнопка шеринга — поверх Link, правый верхний угол */}
     <div className="absolute right-3 top-3 z-10">
       <ShareButton surveyId={survey.id} title={survey.title} />
     </div>

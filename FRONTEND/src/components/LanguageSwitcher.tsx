@@ -6,7 +6,7 @@ import { Globe } from "lucide-react";
 const LANGS = [
   { code: "kz", label: "ҚАЗ", flag: "🇰🇿" },
   { code: "ru", label: "РУС", flag: "🇷🇺" },
-  { code: "en", label: "ENG", flag: "🇬🇧" },
+  { code: "en", label: "ENG", flag: "🇺🇸" },
 ];
 
 const LanguageSwitcher = () => {
@@ -21,7 +21,6 @@ const LanguageSwitcher = () => {
     setOpen(false);
   };
 
-  // Закрывать при клике вне
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {

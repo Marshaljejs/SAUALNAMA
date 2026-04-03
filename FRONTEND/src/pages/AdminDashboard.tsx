@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Users, ClipboardList, BarChart3, Trash2, Shield, ShieldOff, Loader2, Eye, EyeOff, Ban } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/context/AuthContext";
@@ -9,6 +10,7 @@ import { fetchAdminStats, fetchAdminUsers, fetchAdminSurveys, updateUserRole, ad
 
 const AdminDashboard = () => {
   const { isAdmin } = useAuth();
+  const { t } = useTranslation();
   const [tab, setTab] = useState<"stats" | "users" | "surveys">("stats");
   const [stats, setStats] = useState<{ users: { total: number; admins: number; regular: number }; surveys: { total: number; published: number }; responses: { total: number } } | null>(null);
   const [users, setUsers] = useState<{ id: number; username: string; role: string; is_banned: boolean; survey_count: number; created_at: string }[]>([]);
@@ -26,18 +28,14 @@ const AdminDashboard = () => {
   }, [tab]);
 
   const loadStats = async () => {
-    try {
-      const data = await fetchAdminStats();
-      setStats(data);
-    } catch (err: unknown) { toast.error(err instanceof Error ? err.message : "Қате"); }
+    try { setStats(await fetchAdminStats()); }
+    catch (err: unknown) { toast.error(err instanceof Error ? err.message : t("common.error")); }
   };
 
   const loadUsers = async () => {
     setLoading(true);
-    try {
-      const data = await fetchAdminUsers();
-      setUsers(data);
-    } catch (err: unknown) { toast.error(err instanceof Error ? err.message : "Қате"); }
+    try { setUsers(await fetchAdminUsers()); }
+    catch (err: unknown) { toast.error(err instanceof Error ? err.message : t("common.error")); }
     finally { setLoading(false); }
   };
 
@@ -45,11 +43,9 @@ const AdminDashboard = () => {
     setLoading(true);
     try {
       const data = await fetchAdminSurveys();
-      setSurveys(data.map((s: any) => ({
-        ...s,
-        icon: s.emoji || s.icon || "fa-solid fa-clipboard-list",
-      })));
-    } catch (err: unknown) { toast.error(err instanceof Error ? err.message : "Қате"); }
+      setSurveys(data.map((s: any) => ({ ...s, icon: s.emoji || s.icon || "fa-solid fa-clipboard-list" })));
+    }
+    catch (err: unknown) { toast.error(err instanceof Error ? err.message : t("common.error")); }
     finally { setLoading(false); }
   };
 
@@ -57,8 +53,8 @@ const AdminDashboard = () => {
     try {
       await banUser(userId, !currentBanned);
       setUsers((prev) => prev.map((u) => u.id === userId ? { ...u, is_banned: !currentBanned } : u));
-      toast.success(!currentBanned ? "Пайдаланушы бандалды" : "Бан алынды");
-    } catch (err: unknown) { toast.error(err instanceof Error ? err.message : "Қате"); }
+      toast.success(!currentBanned ? t("adminPage.banUser") : t("adminPage.unbanUser"));
+    } catch (err: unknown) { toast.error(err instanceof Error ? err.message : t("common.error")); }
   };
 
   const handleRoleChange = async (userId: number, currentRole: string) => {
@@ -66,34 +62,34 @@ const AdminDashboard = () => {
     try {
       await updateUserRole(userId, newRole);
       setUsers((prev) => prev.map((u) => u.id === userId ? { ...u, role: newRole } : u));
-      toast.success(`Рөл өзгертілді: ${newRole}`);
-    } catch (err: unknown) { toast.error(err instanceof Error ? err.message : "Қате"); }
+      toast.success(t("adminPage.roleChanged", { role: newRole }));
+    } catch (err: unknown) { toast.error(err instanceof Error ? err.message : t("common.error")); }
   };
 
   const handleDeleteUser = async (userId: number, username: string) => {
-    if (!confirm(`"${username}" пайдаланушысын жоясыз ба?`)) return;
+    if (!confirm(t("adminPage.confirmDeleteUser", { name: username }))) return;
     try {
       await adminDeleteUser(userId);
       setUsers((prev) => prev.filter((u) => u.id !== userId));
-      toast.success("Пайдаланушы жойылды");
-    } catch (err: unknown) { toast.error(err instanceof Error ? err.message : "Қате"); }
+      toast.success(t("adminPage.userDeleted"));
+    } catch (err: unknown) { toast.error(err instanceof Error ? err.message : t("common.error")); }
   };
 
   const handleDeleteSurvey = async (id: string, title: string) => {
-    if (!confirm(`"${title}" сауалнамасын жоясыз ба?`)) return;
+    if (!confirm(t("adminPage.confirmDeleteSurvey", { title }))) return;
     try {
       await adminDeleteSurvey(id);
       setSurveys((prev) => prev.filter((s) => s.id !== id));
-      toast.success("Сауалнама жойылды");
-    } catch (err: unknown) { toast.error(err instanceof Error ? err.message : "Қате"); }
+      toast.success(t("adminPage.surveyDeleted"));
+    } catch (err: unknown) { toast.error(err instanceof Error ? err.message : t("common.error")); }
   };
 
   const handleTogglePublish = async (id: string, current: boolean) => {
     try {
       await toggleSurveyPublish(id, !current);
       setSurveys((prev) => prev.map((s) => s.id === id ? { ...s, is_published: !current } : s));
-      toast.success(!current ? "Жарияланды" : "Жасырылды");
-    } catch (err: unknown) { toast.error(err instanceof Error ? err.message : "Қате"); }
+      toast.success(!current ? t("adminPage.publishDone") : t("adminPage.hideDone"));
+    } catch (err: unknown) { toast.error(err instanceof Error ? err.message : t("common.error")); }
   };
 
   if (!isAdmin) {
@@ -107,13 +103,19 @@ const AdminDashboard = () => {
                 <i className="fa-solid fa-lock text-3xl text-destructive"></i>
               </div>
             </div>
-            <h2 className="mt-4 text-xl font-bold">Рұқсат жоқ</h2>
-            <p className="mt-2 text-muted-foreground">Тек администраторларға арналған</p>
+            <h2 className="mt-4 text-xl font-bold">{t("adminPage.noAccess")}</h2>
+            <p className="mt-2 text-muted-foreground">{t("adminPage.noAccessDesc")}</p>
           </div>
         </main>
       </div>
     );
   }
+
+  const tabs = [
+    { key: "stats",   label: t("adminPage.tabStats"),   icon: BarChart3 },
+    { key: "users",   label: t("adminPage.tabUsers"),   icon: Users },
+    { key: "surveys", label: t("adminPage.tabSurveys"), icon: ClipboardList },
+  ] as const;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -126,22 +128,16 @@ const AdminDashboard = () => {
                 <Shield className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">Админ панелі</h1>
-                <p className="text-sm text-muted-foreground">Барлығын басқару</p>
+                <h1 className="text-2xl font-bold text-foreground">{t("adminPage.title")}</h1>
+                <p className="text-sm text-muted-foreground">{t("adminPage.subtitle")}</p>
               </div>
             </div>
           </motion.div>
-
-          {/* Tabs */}
           <div className="mb-6 flex gap-2 border-b border-border">
-            {[
-              { key: "stats", label: "Статистика", icon: BarChart3 },
-              { key: "users", label: "Пайдаланушылар", icon: Users },
-              { key: "surveys", label: "Сауалнамалар", icon: ClipboardList },
-            ].map(({ key, label, icon: Icon }) => (
+            {tabs.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
-                onClick={() => setTab(key as "stats" | "users" | "surveys")}
+                onClick={() => setTab(key)}
                 className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors ${
                   tab === key
                     ? "border-primary text-primary"
@@ -153,14 +149,14 @@ const AdminDashboard = () => {
             ))}
           </div>
 
-          {/* STATS */}
+
           {tab === "stats" && stats && (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {[
-                { label: "Жалпы пайдаланушылар", value: stats.users.total, faIcon: "fa-solid fa-users", color: "text-blue-500", bg: "bg-blue-50" },
-                { label: "Администраторлар", value: stats.users.admins, faIcon: "fa-solid fa-crown", color: "text-amber-500", bg: "bg-amber-50" },
-                { label: "Сауалнамалар", value: stats.surveys.total, faIcon: "fa-solid fa-clipboard-list", color: "text-primary", bg: "bg-primary/10" },
-                { label: "Жалпы жауаптар", value: stats.responses.total, faIcon: "fa-solid fa-circle-check", color: "text-success", bg: "bg-success/10" },
+                { label: t("adminPage.statUsers"),     value: stats.users.total,      faIcon: "fa-solid fa-users",         color: "text-blue-500",  bg: "bg-blue-50 dark:bg-blue-500/10" },
+                { label: t("adminPage.statAdmins"),    value: stats.users.admins,     faIcon: "fa-solid fa-crown",         color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-500/10" },
+                { label: t("adminPage.statSurveys"),   value: stats.surveys.total,    faIcon: "fa-solid fa-clipboard-list",color: "text-primary",   bg: "bg-primary/10" },
+                { label: t("adminPage.statResponses"), value: stats.responses.total,  faIcon: "fa-solid fa-circle-check",  color: "text-success",   bg: "bg-success/10" },
               ].map((stat, i) => (
                 <motion.div
                   key={stat.label}
@@ -169,7 +165,6 @@ const AdminDashboard = () => {
                   transition={{ delay: i * 0.08 }}
                   className="rounded-2xl border border-border bg-card p-6"
                 >
-                  {/* эмодзи → Font Awesome иконка */}
                   <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${stat.bg}`}>
                     <i className={`${stat.faIcon} ${stat.color} text-lg`}></i>
                   </div>
@@ -189,12 +184,12 @@ const AdminDashboard = () => {
                 <table className="w-full text-sm">
                   <thead className="border-b border-border bg-muted/50">
                     <tr>
-                      <th className="px-5 py-3 text-left font-semibold text-muted-foreground">Логин</th>
-                      <th className="px-5 py-3 text-left font-semibold text-muted-foreground">Рөл</th>
-                      <th className="px-5 py-3 text-left font-semibold text-muted-foreground">Күй</th>
-                      <th className="px-5 py-3 text-left font-semibold text-muted-foreground">Сауалнамалар</th>
-                      <th className="px-5 py-3 text-left font-semibold text-muted-foreground">Тіркелді</th>
-                      <th className="px-5 py-3 text-right font-semibold text-muted-foreground">Әрекет</th>
+                      <th className="px-5 py-3 text-left font-semibold text-muted-foreground">{t("adminPage.colLogin")}</th>
+                      <th className="px-5 py-3 text-left font-semibold text-muted-foreground">{t("adminPage.colRole")}</th>
+                      <th className="px-5 py-3 text-left font-semibold text-muted-foreground">{t("adminPage.colStatus")}</th>
+                      <th className="px-5 py-3 text-left font-semibold text-muted-foreground">{t("adminPage.colSurveys")}</th>
+                      <th className="px-5 py-3 text-left font-semibold text-muted-foreground">{t("adminPage.colRegistered")}</th>
+                      <th className="px-5 py-3 text-right font-semibold text-muted-foreground">{t("adminPage.colActions")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -203,22 +198,22 @@ const AdminDashboard = () => {
                         <td className="px-5 py-3.5 font-medium text-foreground">{u.username}</td>
                         <td className="px-5 py-3.5">
                           <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                            u.role === "admin" ? "bg-amber-100 text-amber-700" : "bg-muted text-muted-foreground"
+                            u.role === "admin" ? "bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400" : "bg-muted text-muted-foreground"
                           }`}>
                             <i className={u.role === "admin" ? "fa-solid fa-crown text-amber-500" : "fa-solid fa-user"}></i>
-                            {u.role === "admin" ? "Админ" : "Пайдаланушы"}
+                            {u.role === "admin" ? t("adminPage.roleAdmin") : t("adminPage.roleUser")}
                           </span>
                         </td>
                         <td className="px-5 py-3.5">
                           <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                             u.is_banned ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success"
                           }`}>
-                            {u.is_banned ? "Бандалған" : "Белсенді"}
+                            {u.is_banned ? t("adminPage.statusBanned") : t("adminPage.statusActive")}
                           </span>
                         </td>
                         <td className="px-5 py-3.5 text-muted-foreground">{u.survey_count}</td>
                         <td className="px-5 py-3.5 text-muted-foreground">
-                          {new Date(u.created_at).toLocaleDateString("kk-KZ")}
+                          {new Date(u.created_at).toLocaleDateString()}
                         </td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center justify-end gap-1">
@@ -226,10 +221,10 @@ const AdminDashboard = () => {
                               onClick={() => handleRoleChange(u.id, u.role)}
                               className={`rounded-lg p-1.5 transition-colors ${
                                 u.role === "admin"
-                                  ? "text-amber-500 hover:bg-amber-50"
+                                  ? "text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10"
                                   : "text-muted-foreground hover:bg-muted"
                               }`}
-                              title={u.role === "admin" ? "Пайдаланушы ету" : "Админ ету"}
+                              title={u.role === "admin" ? t("adminPage.makeUser") : t("adminPage.makeAdmin")}
                             >
                               {u.role === "admin" ? <ShieldOff className="h-4 w-4" /> : <Shield className="h-4 w-4" />}
                             </button>
@@ -240,13 +235,14 @@ const AdminDashboard = () => {
                                   ? "text-success hover:bg-success/10"
                                   : "text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                               }`}
-                              title={u.is_banned ? "Бан алу" : "Бандау"}
+                              title={u.is_banned ? t("adminPage.doUnban") : t("adminPage.doBan")}
                             >
                               <Ban className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteUser(u.id, u.username)}
                               className="rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                              title={t("common.delete")}
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -268,11 +264,11 @@ const AdminDashboard = () => {
                 <table className="w-full text-sm">
                   <thead className="border-b border-border bg-muted/50">
                     <tr>
-                      <th className="px-5 py-3 text-left font-semibold text-muted-foreground">Сауалнама</th>
-                      <th className="px-5 py-3 text-left font-semibold text-muted-foreground">Иесі</th>
-                      <th className="px-5 py-3 text-left font-semibold text-muted-foreground">Жауаптар</th>
-                      <th className="px-5 py-3 text-left font-semibold text-muted-foreground">Күй</th>
-                      <th className="px-5 py-3 text-right font-semibold text-muted-foreground">Әрекет</th>
+                      <th className="px-5 py-3 text-left font-semibold text-muted-foreground">{t("adminPage.colSurvey")}</th>
+                      <th className="px-5 py-3 text-left font-semibold text-muted-foreground">{t("adminPage.colOwner")}</th>
+                      <th className="px-5 py-3 text-left font-semibold text-muted-foreground">{t("adminPage.colAnswers")}</th>
+                      <th className="px-5 py-3 text-left font-semibold text-muted-foreground">{t("adminPage.colPublished")}</th>
+                      <th className="px-5 py-3 text-right font-semibold text-muted-foreground">{t("adminPage.colActions")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -280,7 +276,6 @@ const AdminDashboard = () => {
                       <tr key={s.id} className="hover:bg-muted/30 transition-colors">
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-2">
-                            {/* s.emoji → Font Awesome иконка */}
                             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
                               <i className={`${s.icon} text-sm text-primary`}></i>
                             </div>
@@ -293,7 +288,7 @@ const AdminDashboard = () => {
                           <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${
                             s.is_published ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
                           }`}>
-                            {s.is_published ? "Жарияланған" : "Жасырын"}
+                            {s.is_published ? t("adminPage.statusPublished") : t("adminPage.statusHidden")}
                           </span>
                         </td>
                         <td className="px-5 py-3.5">
@@ -301,13 +296,14 @@ const AdminDashboard = () => {
                             <button
                               onClick={() => handleTogglePublish(s.id, s.is_published)}
                               className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted transition-colors"
-                              title={s.is_published ? "Жасыру" : "Жариялау"}
+                              title={s.is_published ? t("adminPage.doHide") : t("adminPage.doPublish")}
                             >
                               {s.is_published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </button>
                             <button
                               onClick={() => handleDeleteSurvey(s.id, s.title)}
                               className="rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                              title={t("common.delete")}
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>

@@ -26,7 +26,6 @@ interface Comment {
   created_at: string;
 }
 
-// ── Секция комментариев ────────────────────────────────────────────────────────
 const CommentsSection = ({ surveyId, primaryColor }: { surveyId: string; primaryColor?: string | null }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -78,8 +77,6 @@ const CommentsSection = ({ surveyId, primaryColor }: { surveyId: string; primary
           {comments.length}
         </span>
       </h3>
-
-      {/* Форма */}
       {user ? (
         <div className="mb-5 flex gap-2">
           <textarea
@@ -111,8 +108,6 @@ const CommentsSection = ({ surveyId, primaryColor }: { surveyId: string; primary
           </Link>
         </div>
       )}
-
-      {/* Список */}
       {loading ? (
         <div className="flex justify-center py-6">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -165,7 +160,6 @@ const CommentsSection = ({ surveyId, primaryColor }: { surveyId: string; primary
   );
 };
 
-// ── Экран завершения ──────────────────────────────────────────────────────────
 const CompletionScreen = ({
   survey,
   xpGained,
@@ -205,7 +199,6 @@ const CompletionScreen = ({
               <h2 className="mt-6 text-2xl font-bold text-foreground">{t("survey.submitSuccess").split("!")[0]}!</h2>
               <p className="mt-2 text-muted-foreground">{t("survey.submitSuccess").split("!").slice(1).join("!")}</p>
 
-              {/* XP анимация */}
               {xpGained > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
@@ -220,7 +213,6 @@ const CompletionScreen = ({
                 </motion.div>
               )}
 
-              {/* Level up */}
               {levelUp && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
@@ -232,7 +224,6 @@ const CompletionScreen = ({
                 </motion.div>
               )}
 
-              {/* New badges */}
               {newBadges.map((b, i) => (
                 <motion.div
                   key={i}
@@ -244,8 +235,6 @@ const CompletionScreen = ({
                   {t("gamification.newBadge", { name: getBadgeName(b) })}
                 </motion.div>
               ))}
-
-              {/* Share */}
               <div className="mt-5 flex items-center justify-center gap-2 rounded-xl bg-muted/60 px-4 py-2.5">
                 <span className="text-xs text-muted-foreground">{t("survey.shareWith")}</span>
                 <ShareButton surveyId={survey.id} title={survey.title} />
@@ -267,8 +256,6 @@ const CompletionScreen = ({
                 </button>
               </div>
             </div>
-
-            {/* Комментарии */}
             <CommentsSection surveyId={survey.id} primaryColor={survey.primary_color} />
           </motion.div>
         </main>
@@ -277,7 +264,6 @@ const CompletionScreen = ({
   );
 };
 
-// ── Главный компонент ─────────────────────────────────────────────────────────
 const TakeSurvey = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -400,8 +386,6 @@ const TakeSurvey = () => {
       toast.error(t("survey.questionRequired"));
       return;
     }
-
-    // Honeypot check: если бот заполнил скрытое поле — симулируем успех
     if (honeypotRef.current?.value) {
       setCompleted(true);
       return;
@@ -433,7 +417,6 @@ const TakeSurvey = () => {
       <div className="relative z-10 flex min-h-screen flex-col">
         <Header />
         <main className="flex flex-1 flex-col">
-          {/* Progress bar */}
           <div className="h-1 bg-white/20">
             <motion.div
               className="h-full"
@@ -453,8 +436,6 @@ const TakeSurvey = () => {
                   title: survey.title,
                 })}
               </p>
-
-              {/* Honeypot — скрыт от людей, видим ботам */}
               <input
                 ref={honeypotRef}
                 type="text"

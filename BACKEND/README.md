@@ -25,7 +25,7 @@ npm run dev
 
 ## 5. Frontend іске қосу (бөлек терминалда)
 ```bash
-cd "../Новая папка"
+cd "../Папканың атауы"
 npm run dev
 ```
 Сайт: http://localhost:8080

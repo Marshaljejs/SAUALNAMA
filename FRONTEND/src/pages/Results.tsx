@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useSurveys } from "@/context/SurveyContext";
@@ -38,6 +39,7 @@ const Results = () => {
   const [selectedId, setSelectedId] = useState<string>("");
   const [statsData, setStatsData] = useState<SurveyStats | null>(null);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const paramId = searchParams.get("survey");
@@ -60,7 +62,7 @@ const Results = () => {
       const data = await fetchStats(id);
       setStatsData(data);
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Қате орын алды");
+      toast.error(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -78,17 +80,15 @@ const Results = () => {
             animate={{ opacity: 1, y: 0 }}
             className="mb-10"
           >
-            <h1 className="text-3xl font-bold text-foreground md:text-4xl">Нәтижелер</h1>
-            <p className="mt-2 text-muted-foreground">
-              Сауалнамалар бойынша жалпы статистика
-            </p>
+            <h1 className="text-3xl font-bold text-foreground md:text-4xl">{t("resultsPage.title")}</h1>
+            <p className="mt-2 text-muted-foreground">{t("resultsPage.subtitle")}</p>
           </motion.div>
 
           <div className="mb-8 grid gap-4 sm:grid-cols-3">
             {[
-              { label: "Жалпы қатысушылар", value: surveys.reduce((a, s) => a + s.respondents, 0), faIcon: "fa-solid fa-users", color: "text-blue-500", bg: "bg-blue-50" },
-              { label: "Сауалнамалар саны", value: surveys.length, faIcon: "fa-solid fa-clipboard-list", color: "text-primary", bg: "bg-primary/10" },
-              { label: "Таңдалған сауалнама жауаптары", value: statsData?.total ?? "—", faIcon: "fa-solid fa-chart-bar", color: "text-amber-500", bg: "bg-amber-50" },
+              { label: t("resultsPage.totalParticipants"), value: surveys.reduce((a, s) => a + s.respondents, 0), faIcon: "fa-solid fa-users", color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-500/10" },
+              { label: t("resultsPage.totalSurveys"), value: surveys.length, faIcon: "fa-solid fa-clipboard-list", color: "text-primary", bg: "bg-primary/10" },
+              { label: t("resultsPage.selectedAnswers"), value: statsData?.total ?? "—", faIcon: "fa-solid fa-chart-bar", color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-500/10" },
             ].map((stat, i) => (
               <motion.div
                 key={stat.label}
@@ -108,7 +108,7 @@ const Results = () => {
 
           <div className="mb-6">
             <label className="mb-2 block text-sm font-semibold text-foreground">
-              Сауалнаманы таңдаңыз:
+              {t("resultsPage.selectLabel")}
             </label>
             <select
               value={selectedId}
@@ -132,9 +132,9 @@ const Results = () => {
                   <i className="fa-solid fa-inbox text-2xl text-muted-foreground"></i>
                 </div>
               </div>
-              <p className="mt-4 text-lg font-semibold text-foreground">Жауаптар жоқ</p>
+              <p className="mt-4 text-lg font-semibold text-foreground">{t("resultsPage.noAnswers")}</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                «{selectedSurvey?.title}» сауалнамасына әлі жауап берілмеген
+                {t("resultsPage.noAnswersDesc", { title: selectedSurvey?.title })}
               </p>
             </div>
           ) : statsData ? (
@@ -169,11 +169,11 @@ const Results = () => {
 
                   {stat.type === "rating" && (
                     <div className="flex items-center gap-4">
-                      <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-amber-50">
+                      <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-amber-50 dark:bg-amber-500/10">
                         <span className="text-3xl font-black text-amber-500">{stat.average}</span>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Орташа баға</p>
+                        <p className="text-sm text-muted-foreground">{t("resultsPage.averageRating")}</p>
                         <div className="mt-1 flex gap-1">
                           {[1, 2, 3, 4, 5].map((star) => (
                             <i
@@ -186,7 +186,9 @@ const Results = () => {
                             ></i>
                           ))}
                         </div>
-                        <p className="mt-1 text-xs text-muted-foreground">{stat.count} жауап</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {t("resultsPage.answerCount", { count: stat.count })}
+                        </p>
                       </div>
                     </div>
                   )}
@@ -194,7 +196,7 @@ const Results = () => {
                   {stat.type === "text" && stat.answers && (
                     <div className="space-y-2">
                       {stat.answers.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">Жауаптар жоқ</p>
+                        <p className="text-sm text-muted-foreground">{t("resultsPage.textEmpty")}</p>
                       ) : (
                         stat.answers.map((ans, idx) => (
                           <div key={idx} className="rounded-xl bg-muted px-4 py-3 text-sm text-foreground">

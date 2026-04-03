@@ -5,7 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SurveyProvider } from "@/context/SurveyContext";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
-import { ThemeProvider } from "@/context/ThemeContext";
+import { ThemeProvider, useTheme } from "@/context/ThemeContext";
+import bgImage from "@/assets/bg.jpg";
 import Index from "./pages/Index";
 import SurveyList from "./pages/SurveyList";
 import TakeSurvey from "./pages/TakeSurvey";
@@ -16,8 +17,7 @@ import AuthPage from "./pages/AuthPage";
 import MySurveys from "./pages/MySurveys";
 import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
-import bgImage from "@/assets/bg.jpg";
-
+import StreakResetModal from "@/components/StreakResetModal";
 const queryClient = new QueryClient();
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -35,15 +35,17 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const AppRoutes = () => (
+const AppRoutes = () => {
+  const { theme } = useTheme();
+  return (
   <div
-    style={{
+    className="min-h-screen bg-background"
+    style={theme === "light" ? {
       backgroundImage: `url(${bgImage})`,
       backgroundSize: "cover",
       backgroundPosition: "center",
       backgroundAttachment: "fixed",
-      minHeight: "100vh",
-    }}
+    } : undefined}
   >
     <BrowserRouter>
       <Routes>
@@ -88,7 +90,8 @@ const AppRoutes = () => (
       </Routes>
     </BrowserRouter>
   </div>
-);
+  );
+};
 
 const App = () => (
   <ThemeProvider>
@@ -98,6 +101,7 @@ const App = () => (
           <SurveyProvider>
             <Toaster />
             <Sonner />
+            <StreakResetModal />
             <AppRoutes />
           </SurveyProvider>
         </AuthProvider>

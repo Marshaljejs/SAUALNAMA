@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { login as apiLogin, register as apiRegister } from "@/lib/api";
 
+const API_URL = "http://localhost:3001/api";
+
 export interface User {
   id: number;
   username: string;
@@ -16,6 +18,8 @@ interface AuthContextType {
   token: string | null;
   isAdmin: boolean;
   isLoading: boolean;
+  streakReset: boolean;
+  dismissStreakReset: () => void;
   login: (username: string, password: string) => Promise<void>;
   register: (username: string, password: string) => Promise<void>;
   logout: () => void;
@@ -28,6 +32,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [streakReset, setStreakReset] = useState(false);
 
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
@@ -36,13 +41,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         setToken(savedToken);
         const parsed = JSON.parse(savedUser) as User;
-        // Обратная совместимость: старые данные без xp/level/streak
-        setUser({
-          xp: 0,
-          level: 1,
-          streak_count: 0,
-          ...parsed,
-        });
+        setUser({ xp: 0, level: 1, streak_count: 0, ...parsed });
+
+        fetch(`${API_URL}/auth/me`, {
+          headers: { Authorization: `Bearer ${savedToken}` },
+        })
+          .then((r) => r.json())
+          .then((data) => {
+            if (data.success) {
+              setUser({ xp: 0, level: 1, streak_count: 0, ...data.user });
+              localStorage.setItem("user", JSON.stringify({ xp: 0, level: 1, streak_count: 0, ...data.user }));
+              if (data.streak_reset) setStreakReset(true);
+            }
+          })
+          .catch(() => {/* */});
       } catch {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -51,6 +63,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(false);
   }, []);
 
+  const dismissStreakReset = () => setStreakReset(false);
+
   const login = async (username: string, password: string) => {
     const data = await apiLogin(username, password);
     setToken(data.token);
@@ -58,6 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(u);
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(u));
+    if (data.streak_reset) setStreakReset(true);
   };
 
   const register = async (username: string, password: string) => {
@@ -90,6 +105,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       user, token,
       isAdmin: user?.role === "admin",
       isLoading,
+      streakReset,
+      dismissStreakReset,
       login, register, logout, updateUser,
     }}>
       {children}

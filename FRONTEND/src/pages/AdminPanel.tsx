@@ -56,7 +56,6 @@ interface QuestionDraft {
   required: boolean;
 }
 
-// ── Preview Modal ─────────────────────────────────────────────────────────────
 const PreviewModal = ({
   title,
   description,
@@ -101,7 +100,6 @@ const PreviewModal = ({
         style={colorStyle}
         className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-background shadow-2xl"
       >
-        {/* Header */}
         <div
           className="rounded-t-2xl p-6 text-white"
           style={{ background: primaryColor ?? "hsl(var(--primary))" }}
@@ -121,7 +119,6 @@ const PreviewModal = ({
               <X className="h-5 w-5" />
             </button>
           </div>
-          {/* Progress bar */}
           {mappedQuestions.length > 0 && (
             <div className="mt-4 h-1 bg-white/20 rounded-full overflow-hidden">
               <div
@@ -185,8 +182,6 @@ const PreviewModal = ({
     </motion.div>
   );
 };
-
-// ── Main Component ────────────────────────────────────────────────────────────
 const AdminPanel = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -332,7 +327,6 @@ const AdminPanel = () => {
         <Header />
         <main className="flex-1 py-8 md:py-12">
           <div className="container mx-auto max-w-3xl px-4 md:px-6">
-            {/* Page header */}
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
               <button
                 onClick={() => navigate(-1)}
@@ -358,7 +352,6 @@ const AdminPanel = () => {
               </div>
             </motion.div>
 
-            {/* Survey info */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -418,8 +411,6 @@ const AdminPanel = () => {
                       ))}
                     </div>
                   </div>
-
-                  {/* Category */}
                   <div>
                     <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
                       {t("survey.categoryLabel")}
@@ -434,8 +425,6 @@ const AdminPanel = () => {
                       ))}
                     </select>
                   </div>
-
-                  {/* Time */}
                   <div>
                     <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
                       {t("survey.timeLabel")}
@@ -451,16 +440,12 @@ const AdminPanel = () => {
                     </select>
                   </div>
                 </div>
-
-                {/* Color + Status */}
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {/* Primary Color */}
                   <div>
                     <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
                       {t("survey.colorLabel")}
                     </label>
                     <div className="flex flex-wrap gap-2">
-                      {/* Reset to default */}
                       <button
                         onClick={() => setPrimaryColor(null)}
                         className={`h-8 w-8 rounded-full border-2 transition-all ${
@@ -487,8 +472,6 @@ const AdminPanel = () => {
                       <p className="mt-1 text-xs text-muted-foreground">{primaryColor}</p>
                     )}
                   </div>
-
-                  {/* Status */}
                   <div>
                     <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
                       {t("survey.statusLabel")}
@@ -522,7 +505,6 @@ const AdminPanel = () => {
               </div>
             </motion.div>
 
-            {/* Questions */}
             <div className="mb-6 space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold text-foreground">
@@ -651,8 +633,6 @@ const AdminPanel = () => {
                 </div>
               )}
             </div>
-
-            {/* Save buttons */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

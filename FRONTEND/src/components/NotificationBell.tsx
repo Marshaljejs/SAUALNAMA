@@ -31,7 +31,6 @@ const NotificationBell = () => {
       setNotifications(data.data);
       setUnread(data.unreadCount);
     } catch {
-      // Тихая ошибка — не ломаем UI
     }
   };
 
@@ -60,7 +59,6 @@ const NotificationBell = () => {
         setUnread(0);
         setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
       } catch {
-        // ignore
       }
     }
   };

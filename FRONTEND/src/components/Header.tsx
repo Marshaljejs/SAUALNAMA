@@ -86,7 +86,6 @@ const Header = () => {
           ))}
         </nav>
 
-        {/* Desktop controls */}
         <div className="hidden items-center gap-1.5 md:flex">
           <LanguageSwitcher />
           <button
@@ -149,7 +148,6 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Mobile nav */}
       {mobileOpen && (
         <motion.nav
           initial={{ opacity: 0, height: 0 }}

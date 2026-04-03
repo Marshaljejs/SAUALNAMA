@@ -40,7 +40,6 @@ const ShareButton = ({ surveyId, title, className = "" }: ShareButtonProps) => {
 
   const surveyUrl = `${window.location.origin}/survey/${surveyId}`;
 
-  // Закрыть поповер при клике вне компонента
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
@@ -93,7 +92,6 @@ const ShareButton = ({ surveyId, title, className = "" }: ShareButtonProps) => {
             transition={{ duration: 0.15 }}
             className="absolute right-0 top-full z-50 mt-1 w-44 rounded-xl border border-border bg-card p-1.5 shadow-lg"
           >
-            {/* Копировать ссылку */}
             <button
               onClick={(e) => { e.stopPropagation(); handleCopy(); }}
               className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
@@ -107,7 +105,6 @@ const ShareButton = ({ surveyId, title, className = "" }: ShareButtonProps) => {
 
             <div className="my-1 border-t border-border" />
 
-            {/* Соцсети */}
             {PLATFORMS.map((p) => (
               <a
                 key={p.key}

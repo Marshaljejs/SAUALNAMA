@@ -7,7 +7,6 @@ const authHeaders = (): Record<string, string> => ({
   ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
 });
 
-// ── AUTH ──────────────────────────────────────────────────────────────────────
 export const register = async (username: string, password: string) => {
   const res = await fetch(`${API_URL}/auth/register`, {
     method: "POST",
@@ -52,7 +51,6 @@ export const updatePassword = async (currentPassword: string, newPassword: strin
   return data;
 };
 
-// ── SURVEYS ───────────────────────────────────────────────────────────────────
 export const fetchSurveys = async () => {
   const res = await fetch(`${API_URL}/surveys`);
   const data = await res.json();
@@ -106,7 +104,6 @@ export const deleteSurvey = async (id: string) => {
   return data;
 };
 
-// ── RESPONSES ─────────────────────────────────────────────────────────────────
 export const submitResponse = async (
   surveyId: string,
   answers: Record<string, string | string[] | number>
@@ -118,7 +115,7 @@ export const submitResponse = async (
       surveyId,
       answers,
       sessionId: crypto.randomUUID(),
-      _hp: "",   // Honeypot: боты заполнят это поле
+      _hp: "", 
     }),
   });
   const data = await res.json();
@@ -134,8 +131,6 @@ export const fetchStats = async (surveyId: string) => {
   if (!data.success) throw new Error(data.message);
   return data.data;
 };
-
-// ── GAMIFICATION ─────────────────────────────────────────────────────────────
 export const fetchUserStats = async (userId: number) => {
   const res = await fetch(`${API_URL}/gamification/user/${userId}/stats`, {
     headers: authHeaders(),
@@ -199,7 +194,6 @@ export const markAllNotificationsRead = async () => {
   return data;
 };
 
-// ── ADMIN ─────────────────────────────────────────────────────────────────────
 export const fetchAdminStats = async () => {
   const res = await fetch(`${API_URL}/admin/stats`, { headers: authHeaders() });
   const data = await res.json();

@@ -6,6 +6,58 @@ const { pool } = require("../db");
 const { log } = require("../middleware/logger");
 
 const JWT_SECRET = process.env.JWT_SECRET || "saulnama_secret_key";
+const checkAndUpdateStreak = async (userId, currentStreak, lastActivityDate) => {
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+  const todayStr = today.toISOString().split("T")[0];
+
+  if (!lastActivityDate) {
+    await pool.query(
+      "UPDATE users SET streak_count = 1, last_activity_date = $1 WHERE id = $2",
+      [todayStr, userId]
+    );
+    return { newStreak: 1, streakReset: false };
+  }
+
+  const last = new Date(lastActivityDate);
+  last.setUTCHours(0, 0, 0, 0);
+  const lastStr = last.toISOString().split("T")[0];
+
+  if (todayStr === lastStr) {
+    return { newStreak: currentStreak, streakReset: false };
+  }
+
+  const diffDays = Math.round((today - last) / 86400000);
+  let newStreak;
+  let streakReset = false;
+
+  if (diffDays === 1) {
+    newStreak = currentStreak + 1;
+  } else {
+    newStreak = 1;
+    streakReset = currentStreak > 0;
+  }
+
+  await pool.query(
+    "UPDATE users SET streak_count = $1, last_activity_date = $2 WHERE id = $3",
+    [newStreak, todayStr, userId]
+  );
+
+  if (newStreak >= 3) {
+    await pool.query(
+      "INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, 'streak_3') ON CONFLICT DO NOTHING",
+      [userId]
+    );
+  }
+  if (newStreak >= 7) {
+    await pool.query(
+      "INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, 'streak_7') ON CONFLICT DO NOTHING",
+      [userId]
+    );
+  }
+
+  return { newStreak, streakReset };
+};
 
 const publicUser = (row) => ({
   id: row.id,
@@ -88,13 +140,18 @@ router.post("/login", async (req, res) => {
       { expiresIn: "7d" }
     );
 
+    const { newStreak, streakReset } = await checkAndUpdateStreak(
+      user.id, user.streak_count, user.last_activity_date
+    );
+
     await log({ user: { id: user.id, username: user.username }, action: "login", entityType: "user", entityId: user.id, entityName: user.username, req });
 
     res.json({
       success: true,
       message: "Сәтті кірдіңіз",
       token,
-      user: publicUser(user),
+      user: { ...publicUser(user), streak_count: newStreak },
+      streak_reset: streakReset,
     });
   } catch (err) {
     console.error(err);
@@ -105,12 +162,22 @@ router.post("/login", async (req, res) => {
 router.get("/me", require("../middleware/auth").requireAuth, async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT id, username, role, avatar, xp, level, streak_count, created_at FROM users WHERE id = $1",
+      "SELECT id, username, role, avatar, xp, level, streak_count, last_activity_date, created_at FROM users WHERE id = $1",
       [req.user.id]
     );
     if (result.rows.length === 0)
       return res.status(404).json({ success: false, message: "Пайдаланушы табылмады" });
-    res.json({ success: true, user: result.rows[0] });
+
+    const user = result.rows[0];
+    const { newStreak, streakReset } = await checkAndUpdateStreak(
+      user.id, user.streak_count, user.last_activity_date
+    );
+
+    res.json({
+      success: true,
+      user: { ...publicUser(user), streak_count: newStreak },
+      streak_reset: streakReset,
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: "Сервер қатесі" });
   }

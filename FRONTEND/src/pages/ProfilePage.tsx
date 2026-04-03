@@ -53,7 +53,6 @@ const AvatarTile = ({
   );
 };
 
-// XP thresholds per level
 const XP_THRESHOLDS = [0, 100, 250, 500, 1000];
 
 const getLevelProgress = (xp: number, level: number) => {
@@ -112,7 +111,6 @@ const ProfilePage = () => {
     fetchUserStats(user.id)
       .then(setStats)
       .catch(() => {
-        // Фолбэк: используем данные из localStorage
         setStats({
           xp: user.xp ?? 0,
           level: user.level ?? 1,
@@ -203,7 +201,6 @@ const ProfilePage = () => {
             <p className="text-sm text-muted-foreground mt-1">{t("profile.subtitle")}</p>
           </motion.div>
 
-          {/* ── Статистика геймификации ── */}
           <motion.section
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -211,7 +208,6 @@ const ProfilePage = () => {
             className={cardCls}
           >
             <div className="flex items-center gap-6 mb-4">
-              {/* XP / Level */}
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
                   <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
@@ -235,7 +231,6 @@ const ProfilePage = () => {
                 )}
               </div>
 
-              {/* Streak */}
               <div className="flex flex-col items-center gap-0.5">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100 dark:bg-orange-900/30">
                   <Flame className={`h-5 w-5 ${streak > 0 ? "text-orange-500" : "text-muted-foreground/30"}`} />
@@ -245,7 +240,6 @@ const ProfilePage = () => {
               </div>
             </div>
 
-            {/* Achievements */}
             <div>
               <h3 className="mb-3 flex items-center gap-1.5 text-xs font-semibold text-foreground">
                 <Trophy className="h-3.5 w-3.5 text-amber-500" />
@@ -274,7 +268,6 @@ const ProfilePage = () => {
             </div>
           </motion.section>
 
-          {/* ── Аватар ── */}
           <motion.section
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -334,7 +327,6 @@ const ProfilePage = () => {
             </div>
           </motion.section>
 
-          {/* ── Никнейм ── */}
           <motion.section
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -363,7 +355,6 @@ const ProfilePage = () => {
             </div>
           </motion.section>
 
-          {/* ── Пароль ── */}
           <motion.section
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
